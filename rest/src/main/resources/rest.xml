@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+            http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+            http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:component-scan base-package="com.rest.controller"
+		use-default-filters="false">
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<!-- Json -->
+	<!-- <bean
+		class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<property name="messageConverters">
+			<bean
+				class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>application/json;charset=utf-8</value>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean> -->
+	
+	<bean id="jsonObjectMapper" class="org.codehaus.jackson.map.ObjectMapper">
+		<property name="dateFormat">
+			<!--<bean class="org.codehaus.jackson.map.util.ISO8601DateFormat" />-->
+			<!--<bean class="org.codehaus.jackson.map.util.StdDateFormat" />-->
+			<bean class="com.rest.exception.date.ISO8601DateTimeFormat" />
+		</property>
+	</bean>
+	
+	<bean id="jacksonHttpMessageConverter" class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+		<property name="objectMapper" ref="jsonObjectMapper" />
+		<property name="supportedMediaTypes">
+			<list>
+				<value>application/json</value>
+				<value>text/plain</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="restExceptionResolver" class="com.rest.exception.handler.RestExceptionHandler">
+		<property name="order" value="100"/>
+		<property name="messageConverters">
+			<list>
+				<ref bean="jacksonHttpMessageConverter"/>
+			</list>
+		</property>
+		<property name="errorResolver">
+			<bean class="com.rest.exception.resolver.DefaultRestErrorResolver">
+				<property name="defaultMoreInfoUrl" value="mailto:developers@surdoc.com"/>
+				<property name="exceptionMappingDefinitions">
+					<map>
+						<!-- 400 输入参数错误 -->
+						<entry key="java.lang.IllegalArgumentException" value="status=400, code=#{T(com.rest.exception.model.ErrorCode).PARAM_ERROR}, msg=_exmsg" />
+                        <entry key="java.lang.IllegalStateException" value="status=400, code=#{T(com.rest.exception.model.ErrorCode).PARAM_ERROR}, msg=_exmsg" />
+
+						<!-- 404 文件、目录不存在 -->
+						<entry key="com.surdoc.commons.exceptions.ResourceNotFoundException" value="status=404, code=#{T(com.rest.exception.model.ErrorCode).RESOURCE_NOT_FOUND}, msg=_exmsg"/>
+
+						<!-- 409 资源冲突，比如文件、目录重名 -->
+						<entry key="com.rest.exception.ResourceConflictException" value="status=409, code=#{T(com.rest.exception.model.ErrorCode).RESOURCE_CONFLICT}, msg=_exmsg" />
+
+						<!-- 304 不能做修改，操作 -->
+						<entry key="com.surdoc.commons.exceptions.ResourceNotModifiedException" value="status=304, code=#{T(com.rest.exception.model.ErrorCode).RESOURCE_NOT_MODIFIED}, msg=_exmsg" />
+
+						<!-- 401 OAuth错误-->
+						<entry key="com.surdoc.oauth.common.OAuthProblemException" value="status=401, code=#{T(com.rest.exception.model.ErrorCode).OAUTH_ERROR}, msg=_exmsg"/>
+
+						<!-- 403 禁止访问 -->
+						<entry key="com.surdoc.commons.exceptions.ResourceForbiddenException" value="status=403, code=#{T(com.rest.exception.model.ErrorCode).RESOURCE_FORBIDDEN}, msg=_exmsg"/>
+
+                        <!-- 507 用户空间不足 -->
+                        <entry key="com.surdoc.commons.exceptions.OverStorageQuotaException" value="status=507, code=#{T(com.rest.exception.model.ErrorCode).OVER_STORAGE_QUOTA_TOTAL}, msg=_exmsg" />
+
+                        <!-- 507 用户非文档空间不足 -->
+                        <entry key="com.surdoc.commons.exceptions.OverStorageNonDocException" value="status=507, code=#{T(com.rest.exception.model.ErrorCode).OVER_STORAGE_QUOTA_NON_DOC}, msg=_exmsg" />
+
+						<!-- 503 存储错误 -->
+						<entry key="com.surdoc.commons.exceptions.StorageException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).STORAGE_ERROR}, msg=_exmsg" />
+
+						<!-- 503 数据库错误 -->
+						<entry key="com.surdoc.commons.exceptions.DatabaseException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).DATABASE_ERROR}, msg=_exmsg" />
+
+						<!-- 503 数据库错误 -->
+						<entry key="org.hibernate.HibernateException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).DATABASE_ERROR}, msg=_exmsg" />
+
+						<!-- 503 数据库错误 -->
+						<entry key="java.sql.SQLException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).DATABASE_ERROR}, msg=_exmsg" />
+
+						<!-- 503 数据库错误 -->
+						<entry key="org.springframework.dao.DataAccessException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).DATABASE_ERROR}, msg=_exmsg" />
+
+						<!-- 503 I/O错误 -->
+						<entry key="java.io.IOException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).IO_ERROR}, msg=_exmsg" />
+
+						<!-- 503 网络错误 -->
+						<entry key="java.net.SocketException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).NETWORK_ERROR}, msg=_exmsg" />
+
+						<!-- 503 网络错误 -->
+						<entry key="java.net.SocketTimeoutException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).NETWORK_ERROR}, msg=_exmsg" />
+
+						<!-- 503 文件上传错误 -->
+						<entry key="org.apache.commons.fileupload.FileUploadException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).FILE_UPLOAD_ERROR}, msg=_exmsg" />
+
+						<!-- 503 网络错误 -->
+						<entry key="com.surdoc.commons.exceptions.NetworkException" value="status=503, code=#{T(com.rest.exception.model.ErrorCode).NETWORK_ERROR}, msg=_exmsg" />
+
+						<!-- 500 (catch all): -->
+						<entry key="Throwable" value="status=500, code=000, msg=_exmsg"/>
+					</map>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+</beans>
