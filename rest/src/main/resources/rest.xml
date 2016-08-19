@@ -17,6 +17,20 @@
 		<context:include-filter type="annotation"
 			expression="org.springframework.stereotype.Controller" />
 	</context:component-scan>
+	
+	<mvc:annotation-driven>
+		<mvc:message-converters register-defaults="true">
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<constructor-arg value="UTF-8" />
+				<property name="supportedMediaTypes">
+					<list>
+						<value>*/*;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+			<ref bean="jacksonHttpMessageConverter" />
+		</mvc:message-converters>
+	</mvc:annotation-driven>
 
 	<!-- Json -->
 	<!-- <bean
@@ -35,20 +49,28 @@
 	
 	<bean id="jsonObjectMapper" class="org.codehaus.jackson.map.ObjectMapper">
 		<property name="dateFormat">
-			<!--<bean class="org.codehaus.jackson.map.util.ISO8601DateFormat" />-->
-			<!--<bean class="org.codehaus.jackson.map.util.StdDateFormat" />-->
 			<bean class="com.rest.exception.date.ISO8601DateTimeFormat" />
 		</property>
 	</bean>
 	
-	<bean id="jacksonHttpMessageConverter" class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+	<!-- <bean id="jacksonHttpMessageConverter" class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
 		<property name="objectMapper" ref="jsonObjectMapper" />
 		<property name="supportedMediaTypes">
 			<list>
-				<value>application/json</value>
-				<value>text/plain</value>
+				<value>application/json;charset=UTF-8</value>
+				<value>text/plain;charset=UTF-8</value>
 			</list>
 		</property>
+	</bean> -->
+	
+	<bean id="jacksonHttpMessageConverter" class="com.rest.exception.convert.DefaultJacksonHttpMessageConverter">
+		<property name="objectMapper" ref="jsonObjectMapper" />
+		<property name="supportedMediaTypes">
+			<list>
+				<value>application/json;charset=UTF-8</value>
+			</list>
+		</property>
+		<property name="prettyPrint" value="true" />
 	</bean>
 	
 	<bean id="restExceptionResolver" class="com.rest.exception.handler.RestExceptionHandler">

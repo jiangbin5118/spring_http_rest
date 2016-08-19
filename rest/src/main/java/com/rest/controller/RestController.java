@@ -1,7 +1,10 @@
 package com.rest.controller;
 
+import java.io.IOException;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,6 +29,26 @@ public class RestController {
 			throw new ResourceConflictException("file already exists", ErrorCode.FILE_CONFLICT);
 		return user;
 	}
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/id/{id}")
+	@ResponseBody
+    public User getUserById(@PathVariable String id) throws IOException {
+		return new User();
+    }
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/name/{name}")
+	@ResponseBody
+    public User getUserByName(@PathVariable String name) throws IOException {
+		throw new IOException();
+    }
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/code/{code}")
+	@ResponseBody
+    public User getUserByCode(@PathVariable int code) {
+		throw new IllegalStateException("code not number");
+    }
+	
+	
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/download")
 	public View download(Model model) {
