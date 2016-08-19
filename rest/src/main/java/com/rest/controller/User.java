@@ -1,14 +1,21 @@
 package com.rest.controller;
 
+import java.io.Serializable;
 
-public class User {
-	
+
+public class User implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1874998045873088463L;
+
 	private String userName;
-	
+
 	private String passWord;
-	
+
 	private String dataCenter;
-	
+
 	private String dataCenterName;
 
 	public String getUserName() {
@@ -42,5 +49,5 @@ public class User {
 	public void setDataCenterName(String dataCenterName) {
 		this.dataCenterName = dataCenterName;
 	}
-	
+
 }
